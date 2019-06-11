@@ -1,0 +1,13 @@
+version: '3'
+services:
+  main:
+    build:
+        context: .
+        args:
+            - http_proxy
+            - https_proxy
+            - no_proxy
+    image: cubeearth/spinnaker-k8s-installer
+    volumes:
+    - ./kube:/home/user/.kube:ro
+    - ./certs:/home/user/certs
