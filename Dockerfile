@@ -1,16 +1,16 @@
 FROM cubeearth/halyard
 
+USER root
 
+RUN apt-get update && apt-get -y upgrade && apt-get install -y wget vim jq && \
+	sh -c "$(curl -sL https://github.com/Cube-Earth/Scripts/raw/master/shell/k8s/pod/prepare.sh)" - -c certs -c run
 
 #USER user
 
-ADD run.sh /usr/local/bin/
-ADD tiller.yaml /home/user/yaml/
+COPY scripts/ /usr/local/bin/
 
-VOLUME /home/user/.kube
-VOLUME /home/user/certs
+#VOLUME /home/user/.kube
 
 #EXPOSE 8064
 
-#ENTRYPOINT [ "/usr/local/bin/run.sh" ]
-
+ENTRYPOINT [ "/usr/local/bin/run.sh" ]
