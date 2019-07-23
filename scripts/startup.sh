@@ -208,6 +208,10 @@ echo
     hal config version edit --version "$v"
     hal config deploy edit --location $POD_NAMESPACE
 
+    echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
+    hal config security authn ldap enable
+
+
 	createKubeConfig.sh -a pipeline -k
 	
 	hal config security ui edit --override-base-url "http://$INGRESS_DNS:9000/"
