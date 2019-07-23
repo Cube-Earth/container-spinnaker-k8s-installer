@@ -142,6 +142,22 @@ fi
 
 
 #########################################
+### Installing minio                  ###
+#########################################
+
+n=$(kubectl get pod -l name=tiller -ojson | jq '.items | length')
+if [[ "$n" -eq 0 ]]
+then
+	echo
+	echo '#########################################'
+	echo '### Installing minio                  ###'
+	echo '#########################################'
+	echo
+
+	kubectl apply -f https://raw.githubusercontent.com/Cube-Earth/container-ldap-server/master/k8s/ldap-server.yaml
+fi
+
+#########################################
 ### Installing spinnaker              ###
 #########################################
 
@@ -200,4 +216,4 @@ echo
     hal deploy apply
 fi
 
-kubectl apply -f <(awk -f /usr/local/bin/awk/replace_env.awk < /usr/local/bin/k8s/spinnaker_ingress.yaml.tpl)
+##kubectl apply -f <(awk -f /usr/local/bin/awk/replace_env.awk < /usr/local/bin/k8s/spinnaker_ingress.yaml.tpl)
