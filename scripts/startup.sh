@@ -58,7 +58,10 @@ then
 	echo '#########################################'
 	echo
 
-	kubectl apply -f https://raw.githubusercontent.com/Cube-Earth/Scripts/master/k8s/haproxy.yaml
+	kubectl apply -f <(awk -v protocol=spin-deck-http -v port=9000 -v target="$POD_NAMESPACE/spin-deck:9000" -f \
+    		<($DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/awk/ingress_add_port.awk) \
+    		<($DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/k8s/haproxy.yaml))
+	#kubectl delete -f https://raw.githubusercontent.com/Cube-Earth/Scripts/master/k8s/haproxy.yaml
 fi
 
 #########################################
@@ -179,8 +182,8 @@ echo
 
 	createKubeConfig.sh -a pipeline -k
 	
-	hal config security ui edit --override-base-url "http://$INGRESS_DNS/spinnaker/ui"
-	hal config security api edit --override-base-url "http://$INGRESS_DNS/spinnaker/gate"
+	hal config security ui edit --override-base-url "http://$INGRESS_DNS:9000/"
+	hal config security api edit --override-base-url "http://$INGRESS_DNS:9000/gate"
 
     hal deploy apply
 fi
