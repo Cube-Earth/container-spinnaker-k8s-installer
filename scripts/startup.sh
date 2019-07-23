@@ -38,8 +38,18 @@ then
 	echo '#########################################'
 	echo
 
-	kubectl apply -f <(curl -sL https://github.com/Cube-Earth/container-k8s-cert-server/raw/master/k8s/pod-cert-server.yaml | awk -v ns=$POD_NAMESPACE '{ gsub(/\{\{ *namespace *\}\}/, ns); print }') 
-	sleep 3
+	kubectl apply -f <(curl -sL https://github.com/Cube-Earth/container-k8s-cert-server/raw/master/k8s/pod-cert-server.yaml.tpl | awk -v ns=$POD_NAMESPACE '{ gsub(/\{\{ *namespace *\}\}/, ns); print }') 
+
+	n=30
+	$DOWNLOAD http://pod-cert-server/hello > /dev/null && rc=0 || rc=$?
+	while [[ "$rc" -ne 0 ]]
+	do
+		n=$((n-1))
+		[[ "$n" -eq 0 ]] && echo "ERROR: pod cert server did not successfully start." && exit 1
+		sleep 1
+		$DOWNLOAD http://pod-cert-server/hello > /dev/null && rc=0 || rc=$?
+	done
+
 	update-certs.sh
 	[[ ! -f /certs/tiller-default.cer ]] && echo "ERROR: pod cert server not started successfully!" && exit 1
 fi
