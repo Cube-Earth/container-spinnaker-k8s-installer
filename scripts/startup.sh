@@ -211,10 +211,22 @@ echo
     echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
     hal config security authn ldap enable
 
-    keytool -trustcacerts -keystore ca.jks -importcert -alias ca -file /certs/root-ca.crt -storepass secret -noprompt
-    #keytool -list -keystore ca.jks -storepass secret
-    echo "secret" | hal config security api ssl edit --truststore ca.jks --truststore-password --truststore-type jks
+    cd /tmp
+    openssl pkcs12 -export -clcerts -in /certs/gate.cer -inkey /certs/gate.key -out /certs/gate.p12 -name gate -passin pass:secret -password pass:secret
+    keytool -importkeystore \
+       -srckeystore /certs/gate.p12 -srcstoretype pkcs12 -srcalias gate -srcstorepass secret \
+       -destkeystore /certs/gate.jks -destalias gate -deststoretype pkcs12 -deststorepass secret -destkeypass secret    
+    keytool -trustcacerts -keystore /certs/gate.jks -importcert -alias ca -file /certs/root-ca.cer -storepass secret -noprompt
+    keytool -list -keystore /certs/gate.jks -storepass secret
 
+    echo "secret" | hal config security api ssl edit \
+       --key-alias gate --keystore /certs/gate.jks --keystore-type jks \
+       --truststore /certs/gate.jks --truststore-password --truststore-type jks
+
+    hal config security ui ssl edit \
+       --ssl-certificate-file /certs/deck.cer --ssl-certificate-key-file /certs/deck.key
+
+    hal config security ui ssl enable
 
 	createKubeConfig.sh -a pipeline -k
 	
