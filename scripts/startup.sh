@@ -59,8 +59,8 @@ fi
 ### Installing haproxy                ###
 #########################################
 
-n=$(kubectl get pods -l run=haproxy-ingress -n kube-system -ojson | jq '.items | length')
-if [[ "$n" -eq 0 ]]
+n=$(kubectl get pods -l run=haproxy-ingress -A -ojson | jq '.items | length')
+if [[ "$n" -eq 255 ]]
 then
 	echo
 	echo '#########################################'
@@ -142,15 +142,15 @@ fi
 
 
 #########################################
-### Installing minio                  ###
+### Installing ldap server            ###
 #########################################
 
-n=$(kubectl get pod -l name=tiller -ojson | jq '.items | length')
+n=$(kubectl get pod -l app=ldap-server -ojson | jq '.items | length')
 if [[ "$n" -eq 0 ]]
 then
 	echo
 	echo '#########################################'
-	echo '### Installing minio                  ###'
+	echo '### Installing ldap server            ###'
 	echo '#########################################'
 	echo
 
@@ -210,6 +210,10 @@ echo
 
     echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
     hal config security authn ldap enable
+
+    keytool -trustcacerts -keystore ca.jks -importcert -alias ca -file /certs/root-ca.crt -storepass secret -noprompt
+    #keytool -list -keystore ca.jks -storepass secret
+    echo "secret" | hal config security api ssl edit --truststore ca.jks --truststore-password --truststore-type jks
 
 
 	createKubeConfig.sh -a pipeline -k
