@@ -222,9 +222,10 @@ echo
     echo "secret" | hal config security api ssl edit \
        --key-alias gate --keystore /certs/gate.jks --keystore-type jks \
        --truststore /certs/gate.jks --truststore-password --truststore-type jks
+    hal config security api ssl enable
 
-    hal config security ui ssl edit \
-       --ssl-certificate-file /certs/deck.cer --ssl-certificate-key-file /certs/deck.key
+    echo "" | hal config security ui ssl edit \
+       --ssl-certificate-file /certs/deck.cer --ssl-certificate-key-file /certs/deck.key --ssl-certificate-passphrase
 
     hal config security ui ssl enable
 
