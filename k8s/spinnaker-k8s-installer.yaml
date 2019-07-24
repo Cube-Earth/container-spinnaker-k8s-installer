@@ -43,7 +43,7 @@ spec:
         ssl-cert.tiller.default: "shared"
         ssl-cert.spin-deck: "spin-deck:spin-deck,k8s-demo"
         ssl-cert.spin-gate: "spin-gate:spin-gate,k8s-demo"
-	pwd.shared: "ldap-root"
+        pwd.shared: "ldap-root"
       labels:
         app: spinnaker-k8s-installer
     spec:
