@@ -281,7 +281,7 @@ echo '#########################################'
 echo '### LDAP user 'admin'                 ###'
 echo '#########################################'
 echo
-echo "Please use for logging into spinnaker the user 'admin' with following password:"
+echo "Please use for logging into spinnaker the user 'admin' with following command to obtain the password:"
 echo
-curl -Ls https://pod-cert-server/pwd/ldap-root
+echo "kubectl get secret managed-pwd-ldap-server---ldap-admin -n pipeline -o jsonpath='{.data.pwd}' | base64 -d"
 echo
