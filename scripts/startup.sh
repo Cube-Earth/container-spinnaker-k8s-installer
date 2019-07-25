@@ -183,8 +183,8 @@ echo
 			hal config provider kubernetes account add "$ACCOUNT" --provider-version v2
 			#    --context $(kubectl config current-context)
     
-			mkdir -p ~/.hal/default/profiles
-			echo "spinnaker.s3.versioning: false" > ~/.hal/default/profiles/front50-local.yml
+			mkdir -p /home/user/.hal/default/profiles
+			echo "spinnaker.s3.versioning: false" > /home/user/.hal/default/profiles/front50-local.yml
 
 			echo $MINIO_SECRET_KEY | \
     			hal config storage s3 edit --endpoint http://minio:9000 \
@@ -217,7 +217,7 @@ echo
     keytool -import -trustcacerts -alias k8s-root-ca -keystore /certs/cacerts -file /certs/k8s-root-ca.cer -storepass changeit -noprompt
     kubectl create secret generic internal-trust-store --from-file /certs/cacerts
 
-    mkdir -p ~/.hal/default/service-settings/
+    mkdir -p /home/user/.hal/default/service-settings
     cat << EOF > /home/user/.hal/default/service-settings/gate.yml
 kubernetes:
   volumes:
