@@ -212,16 +212,16 @@ echo
     hal config security authn ldap enable
 
     cd /tmp
-    openssl pkcs12 -export -clcerts -in /certs/gate.cer -inkey /certs/gate.key -out /certs/gate.p12 -name gate -passin pass:secret -password pass:secret
+    openssl pkcs12 -export -clcerts -in /certs/gate.cer -inkey /certs/gate.key -out /certs/gate.p12 -name gate -password pass:secret
     keytool -importkeystore \
        -srckeystore /certs/gate.p12 -srcstoretype pkcs12 -srcalias gate -srcstorepass secret \
        -destkeystore /certs/gate.jks -destalias gate -deststoretype pkcs12 -deststorepass secret -destkeypass secret    
     keytool -trustcacerts -keystore /certs/gate.jks -importcert -alias ca -file /certs/root-ca.cer -storepass secret -noprompt
     keytool -list -keystore /certs/gate.jks -storepass secret
 
-    echo "secret" | hal config security api ssl edit \
-       --key-alias gate --keystore /certs/gate.jks --keystore-type jks \
-       --truststore /certs/gate.jks --truststore-password --truststore-type jks
+    echo "secret" | hal config security api ssl edit --key-alias gate --keystore /certs/gate.jks --keystore-type jks  --keystore-password   
+    echo "secret" | hal config security api ssl edit --truststore /certs/gate.jks --truststore-password --truststore-type jks
+
     hal config security api ssl enable
 
     echo "" | hal config security ui ssl edit \
@@ -231,8 +231,8 @@ echo
 
 	createKubeConfig.sh -a pipeline -k
 	
-	hal config security ui edit --override-base-url "http://$INGRESS_DNS:9000/"
-	hal config security api edit --override-base-url "http://$INGRESS_DNS:8084/"
+	hal config security ui edit --override-base-url "https://$INGRESS_DNS:9000/"
+	hal config security api edit --override-base-url "https://$INGRESS_DNS:8084/"
 
     hal deploy apply
 fi
