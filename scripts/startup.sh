@@ -208,8 +208,25 @@ echo
     hal config version edit --version "$v"
     hal config deploy edit --location $POD_NAMESPACE
 
-    #echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
-    #hal config security authn ldap enable
+    curl -Ls https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "ou=users,dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636
+    # ldapsearch -H ldaps://ldap:636 -D "cn=Manager,dc=k8s" -b ou=users,dc=k8s -w <pwd> "(&(uid=admin)(memberof=cn=admin,ou=groups,dc=k8s))"
+    hal config security authn ldap enable
+
+    cp /etc/ssl/certs/java/cacerts /certs/cacerts
+    cp /certs/root-ca.cer /certs/k8s-root-ca.cer
+    keytool -import -trustcacerts -alias k8s-root-ca -keystore /certs/cacerts -file /certs/k8s-root-ca.cer -storepass changeit -noprompt
+    kubectl create secret generic internal-trust-store --from-file /certs/cacerts
+
+    mkdir -p ~/.hal/default/service-settings/
+    cat << EOF > /home/user/.hal/default/service-settings/gate.yml
+kubernetes:
+  volumes:
+  - id: internal-trust-store
+    mountPath: /etc/ssl/certs/java
+    type: secret
+EOF
+
+
     #hal config security authn x509 enable
 
     cd /tmp
@@ -239,4 +256,32 @@ echo
     hal deploy apply
 fi
 
-##kubectl apply -f <(awk -f /usr/local/bin/awk/replace_env.awk < /usr/local/bin/k8s/spinnaker_ingress.yaml.tpl)
+
+#########################################
+### root-ca.cer                       ###
+#########################################
+
+echo
+echo '#########################################'
+echo '### root-ca.cer                       ###'
+echo '#########################################'
+echo
+echo "Please import following root ca into your browser certificate store!"
+echo
+
+kubectl get secret managed-tls--root-ca -n kube-system -o jsonpath='{.data.tls\.crt}' | base64 -d
+
+
+#########################################
+### LDAP user 'admin'                 ###
+#########################################
+
+echo
+echo '#########################################'
+echo '### LDAP user 'admin'                 ###'
+echo '#########################################'
+echo
+echo "Please use for logging into spinnaker the user 'admin' with following password:"
+echo
+curl -Ls https://pod-cert-server/pwd/ldap-root
+echo
