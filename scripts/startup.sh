@@ -210,7 +210,7 @@ echo
 
     #echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
     #hal config security authn ldap enable
-    hal config security authn x509 enable
+    #hal config security authn x509 enable
 
     cd /tmp
     openssl pkcs12 -export -clcerts -in /certs/spinnaker.cer -inkey /certs/spinnaker.key -out /certs/spinnaker.p12 -name spinnaker -password pass:secret
@@ -233,8 +233,8 @@ echo
 
 	createKubeConfig.sh -a pipeline -k
 	
-	hal config security ui edit --override-base-url "http://$INGRESS_DNS:9000"
-	hal config security api edit --override-base-url "http://$INGRESS_DNS:8084"
+	hal config security ui edit --override-base-url "https://$INGRESS_DNS:9000"
+	hal config security api edit --override-base-url "https://$INGRESS_DNS:8084"
 
     hal deploy apply
 fi
