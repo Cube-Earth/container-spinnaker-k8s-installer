@@ -208,31 +208,31 @@ echo
     hal config version edit --version "$v"
     hal config deploy edit --location $POD_NAMESPACE
 
-    echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
+    echo https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --no-validate --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636/cn=config
     hal config security authn ldap enable
 
     cd /tmp
-    openssl pkcs12 -export -clcerts -in /certs/gate.cer -inkey /certs/gate.key -out /certs/gate.p12 -name gate -password pass:secret
-    keytool -importkeystore \
-       -srckeystore /certs/gate.p12 -srcstoretype pkcs12 -srcalias gate -srcstorepass secret \
-       -destkeystore /certs/gate.jks -destalias gate -deststoretype pkcs12 -deststorepass secret -destkeypass secret    
-    keytool -trustcacerts -keystore /certs/gate.jks -importcert -alias ca -file /certs/root-ca.cer -storepass secret -noprompt
-    keytool -list -keystore /certs/gate.jks -storepass secret
+    #openssl pkcs12 -export -clcerts -in /certs/gate.cer -inkey /certs/gate.key -out /certs/gate.p12 -name gate -password pass:secret
+    #keytool -importkeystore \
+    #   -srckeystore /certs/gate.p12 -srcstoretype pkcs12 -srcalias gate -srcstorepass secret \
+    #   -destkeystore /certs/gate.jks -destalias gate -deststoretype pkcs12 -deststorepass secret -destkeypass secret    
+    #keytool -trustcacerts -keystore /certs/gate.jks -importcert -alias ca -file /certs/root-ca.cer -storepass secret -noprompt
+    #keytool -list -keystore /certs/gate.jks -storepass secret
 
-    echo "secret" | hal config security api ssl edit --key-alias gate --keystore /certs/gate.jks --keystore-type jks  --keystore-password   
-    echo "secret" | hal config security api ssl edit --truststore /certs/gate.jks --truststore-password --truststore-type jks
+    #echo "secret" | hal config security api ssl edit --key-alias gate --keystore /certs/gate.jks --keystore-type jks  --keystore-password   
+    #echo "secret" | hal config security api ssl edit --truststore /certs/gate.jks --truststore-password --truststore-type jks
 
-    hal config security api ssl enable
+    #hal config security api ssl enable
 
-    echo "" | hal config security ui ssl edit \
-       --ssl-certificate-file /certs/deck.cer --ssl-certificate-key-file /certs/deck.key --ssl-certificate-passphrase
+    #echo "" | hal config security ui ssl edit \
+    #   --ssl-certificate-file /certs/deck.cer --ssl-certificate-key-file /certs/deck.key --ssl-certificate-passphrase
 
-    hal config security ui ssl enable
+    #hal config security ui ssl enable
 
 	createKubeConfig.sh -a pipeline -k
 	
-	hal config security ui edit --override-base-url "https://$INGRESS_DNS:9000/"
-	hal config security api edit --override-base-url "https://$INGRESS_DNS:8084/"
+	hal config security ui edit --override-base-url "http://$INGRESS_DNS:9000/"
+	hal config security api edit --override-base-url "http://$INGRESS_DNS:8084/"
 
     hal deploy apply
 fi
