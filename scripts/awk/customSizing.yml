@@ -1,0 +1,78 @@
+customSizing:
+  spin-front50:
+    limits:
+      cpu: 250m
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 2Gi
+  spin-clouddriver:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 2Gi
+  spin-clouddriver-bootstrap:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 2Gi
+  spin-redis:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  spin-deck:
+    limits:
+      cpu: 250m
+      memory: 64Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  spin-gate:
+    limits:
+      cpu: 250m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  spin-orca-bootstrap:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 2Gi
+  spin-igor:
+    limits:
+      cpu: 250m
+      memory: 768Mi
+    requests:
+      cpu: 100m
+      memory: 768Mi
+  spin-rosco:
+    limits:
+      cpu: 250m
+      memory: 768Mi
+    requests:
+      cpu: 100m
+      memory: 768Mi
+  spin-echo:
+    limits:
+      cpu: 250m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  spin-orca:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 2Gi
