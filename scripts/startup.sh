@@ -50,9 +50,10 @@ then
 		$DOWNLOAD http://pod-cert-server/hello > /dev/null && rc=0 || rc=$?
 	done
 
-	update-certs.sh
-	[[ ! -f /certs/tiller-default.cer ]] && echo "ERROR: pod cert server not started successfully!" && exit 1
 fi
+
+update-certs.sh
+[[ ! -f /certs/tiller-default.cer ]] && echo "ERROR: pod cert server not started successfully!" && exit 1
 
 
 #########################################
@@ -172,6 +173,8 @@ echo '### Installing spinnaker              ###'
 echo '#########################################'
 echo
 
+	update-halyard
+
 	export ACCOUNT='spinnaker'
 	
 	case "$PROVIDER" in
@@ -215,7 +218,7 @@ echo
     cp /etc/ssl/certs/java/cacerts /certs/cacerts
     cp /certs/root-ca.cer /certs/k8s-root-ca.cer
     keytool -import -trustcacerts -alias k8s-root-ca -keystore /certs/cacerts -file /certs/k8s-root-ca.cer -storepass changeit -noprompt
-    kubectl create secret generic internal-trust-store --from-file /certs/cacerts
+    #kubectl create secret generic internal-trust-store --from-file /certs/cacerts
 
     mkdir -p /home/user/.hal/default/service-settings
     cat << EOF > /home/user/.hal/default/service-settings/gate.yml
@@ -247,6 +250,8 @@ EOF
        --ssl-certificate-file /certs/deck.cer --ssl-certificate-key-file /certs/deck.key --ssl-certificate-passphrase
 
     hal config security ui ssl enable
+
+    cat /home/user/.hal/config | awk -v f=/usr/local/bin/awk/customSizing.yml -f /usr/local/bin/awk/add_customSizing.awk | tee /home/user/.hal/config > /dev/null
 
 	createKubeConfig.sh -a pipeline -k
 	
