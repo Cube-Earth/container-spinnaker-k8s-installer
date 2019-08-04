@@ -204,7 +204,7 @@ then
 	echo '#########################################'
 	echo
 
-	#update-halyard
+	update-halyard
 
     	mkdir -p /home/user/.hal/default/service-settings
     	cat << EOF > /home/user/.hal/default/service-settings/gate.yml
