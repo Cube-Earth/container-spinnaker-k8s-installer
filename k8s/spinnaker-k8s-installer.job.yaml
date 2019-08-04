@@ -63,7 +63,6 @@ spec:
               fieldPath: metadata.namespace
         - name: INGRESS_DNS
           value: k8s-demo
-        command: [ "sh", "-c", "tail -f /dev/null" ]
       restartPolicy: Never
   completions: 1
   backoffLimit: 1
