@@ -102,7 +102,7 @@ then
 	
 	#kubectl delete deployment --namespace=$POD_NAMESPACE tiller-deploy
 #	kubectl apply -f /usr/local/bin/k8s/tiller.yaml
-	helm init --history-max=100 --tiller-tls --tiller-tls-verify --tiller-tls-cert /certs/tiller-default.cer --tiller-tls-key /certs/tiller-default.key --tls-ca-cert /certs/root-ca.cer --node-selectors "beta.kubernetes.io/os"="linux" --node-selectors "beta.kubernetes.io/arch"="amd64" --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}' --service-account=pipeline
+	helm init --history-max=100 --tiller-tls --tiller-tls-verify --tiller-tls-cert /certs/tiller-default.cer --tiller-tls-key /certs/tiller-default.key --tls-ca-cert /certs/root-ca.cer --node-selectors "beta.kubernetes.io/os"="linux","beta.kubernetes.io/arch"="amd64" --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}' --service-account=pipeline
 
 	n=72  # 72 * 5sec = 6min
 	while ! helm list --tls > /dev/null 2>&1
@@ -138,7 +138,7 @@ then
 	then
 		
 		kubectl apply -f /usr/local/bin/k8s/minio_pvc.yaml
-		helm install --tls --namespace $POD_NAMESPACE --name minio --set accessKey=$MINIO_ACCESS_KEY --set secretKey=$MINIO_SECRET_KEY --set persistence.existingClaim="minio-pvc" stable/minio
+		helm install --tls --namespace $POD_NAMESPACE --name minio --set 'nodeSelector={"beta.kubernetes.io/os": linux, "beta.kubernetes.io/arch": amd64}' --set accessKey=$MINIO_ACCESS_KEY --set secretKey=$MINIO_SECRET_KEY --set persistence.existingClaim="minio-pvc" stable/minio
 
 		# helm delete minio --purge --tls
 	fi
@@ -237,6 +237,7 @@ EOF
 
     for i in "clouddriver deck echo fiat front50 igor orca rosco"
     do
+      echo "--$i--"
       cat << EOF > /home/user/.hal/default/service-settings/$i.yml
 kubernetes:
   nodeSelector:
