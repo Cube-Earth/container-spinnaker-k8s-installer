@@ -240,7 +240,11 @@ EOF
 
 			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k	&& chmod 755 ~/.kube/config	
 		
-                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 --kubeconfig-file $HOME/.kube/config --context $(kubectl config current-context) && touch /tmp/k8s_acc_added.state
+			
+			n=$(hal -q config provider kubernetes account list | grep "$ACCOUNT" | wc -l || rc=$?)
+			[[ "$n" -gt 0 ]] && hal config provider kubernetes account delete "$ACCOUNT"
+                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 && touch /tmp/k8s_acc_added.state
+			#--context $(kubectl config current-context)
     
 			mkdir -p /home/user/.hal/default/profiles
 			echo "spinnaker.s3.versioning: false" > /home/user/.hal/default/profiles/front50-local.yml
