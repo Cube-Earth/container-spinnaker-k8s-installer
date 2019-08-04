@@ -51,7 +51,7 @@ do
 		kubectl label --overwrite node "$node" "beta.kubernetes.io/os=$os" "beta.kubernetes.io/arch=$arch"
 	fi
 done
-
+IFS=' '
 
 #########################################
 ### Installing certificate server     ###
@@ -274,7 +274,6 @@ kubernetes:
     $NODE_SELECTOR_2
 EOF
     done
-    IFS=$'\n'
 
     #hal config security authn x509 enable
 
