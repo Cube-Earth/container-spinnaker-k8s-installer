@@ -1,5 +1,7 @@
 #!/bin/lsh
 
+umask 000
+
 PROVIDER=k8s
 
 NODE_SELECTOR_1="beta.kubernetes.io/os: linux"
@@ -238,8 +240,7 @@ EOF
 
 			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k		
 		
-                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 --kubeconfig-file $HOME/.kube/config && touch /tmp/k8s_acc_added.state
-			#    --context $(kubectl config current-context)
+                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 --kubeconfig-file $HOME/.kube/config --context $(kubectl config current-context) && touch /tmp/k8s_acc_added.state
     
 			mkdir -p /home/user/.hal/default/profiles
 			echo "spinnaker.s3.versioning: false" > /home/user/.hal/default/profiles/front50-local.yml
