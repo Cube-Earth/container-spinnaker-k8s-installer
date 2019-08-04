@@ -238,7 +238,7 @@ EOF
 			hal config provider azure disable
 			hal config provider kubernetes enable
 
-			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k		
+			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k	&& chmod 755 ~/.kube/config	
 		
                         [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 --kubeconfig-file $HOME/.kube/config --context $(kubectl config current-context) && touch /tmp/k8s_acc_added.state
     
