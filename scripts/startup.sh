@@ -28,6 +28,31 @@ chmod +x /usr/local/bin/createKubeConfig.sh
 mkdir -p /usr/local/bin/awk
 $DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/awk/replace_env.awk > /usr/local/bin/awk/replace_env.awk
 
+
+#########################################
+### Labeling nodes                    ###
+#########################################
+
+echo
+echo '#########################################'
+echo '### Labeling nodes                    ###'
+echo '#########################################'
+echo
+
+IFS=$'\n'
+for i in $(kubectl get node -ojson | jq -r '.items[] | select(.kind=="Node") | [(.metadata.name, .status.nodeInfo.operatingSystem, .status.nodeInfo.architecture, .metadata.labels."beta.kubernetes.io/os")] | @tsv')
+do
+	IFS=$'\t' read -r node os arch label <<< $i
+	echo "# " + $node - $os - $arch - $label
+	
+	if [[ "$label" = "null" ]]
+	then
+		echo "labeling node $node ..."
+		kubectl label --overwrite node "$node" "beta.kubernetes.io/os=$os" "beta.kubernetes.io/arch=$arch"
+	fi
+done
+
+
 #########################################
 ### Installing certificate server     ###
 #########################################
@@ -238,6 +263,7 @@ kubernetes:
     $NODE_SELECTOR_2
 EOF
 
+    IFS=' '
     for i in "clouddriver deck echo fiat front50 igor orca rosco"
     do
       echo "--$i--"
@@ -248,6 +274,7 @@ kubernetes:
     $NODE_SELECTOR_2
 EOF
     done
+    IFS=$'\n'
 
     #hal config security authn x509 enable
 
