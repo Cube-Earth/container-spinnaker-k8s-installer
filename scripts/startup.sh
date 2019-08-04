@@ -220,8 +220,7 @@ EOF
 
     	for i in clouddriver deck echo fiat front50 igor orca rosco
     	do
-      	echo "--$i--"
-      	cat << EOF > /home/user/.hal/default/service-settings/$i.yml
+      		cat << EOF > /home/user/.hal/default/service-settings/$i.yml
 kubernetes:
   nodeSelector:
     $NODE_SELECTOR_1
@@ -239,7 +238,7 @@ EOF
 
 			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k		
 		
-                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 && touch /tmp/k8s_acc_added.state
+                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 --kubeconfig-file $HOME/.kube/config && touch /tmp/k8s_acc_added.state
 			#    --context $(kubectl config current-context)
     
 			mkdir -p /home/user/.hal/default/profiles
