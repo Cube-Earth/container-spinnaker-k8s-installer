@@ -218,7 +218,7 @@ kubernetes:
     $NODE_SELECTOR_2
 EOF
 
-    	for i in clouddriver deck echo fiat front50 igor orca rosco
+    	for i in clouddriver deck echo fiat front50 igor orca rosco redis
     	do
       		cat << EOF > /home/user/.hal/default/service-settings/$i.yml
 kubernetes:
