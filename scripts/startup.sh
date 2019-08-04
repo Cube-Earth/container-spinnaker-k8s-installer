@@ -198,13 +198,36 @@ n=0
 if [[ "$n" -eq 0 ]]
 then
 
-echo
-echo '#########################################'
-echo '### Installing spinnaker              ###'
-echo '#########################################'
-echo
+	echo
+	echo '#########################################'
+	echo '### Installing spinnaker              ###'
+	echo '#########################################'
+	echo
 
 	#update-halyard
+
+    	mkdir -p /home/user/.hal/default/service-settings
+    	cat << EOF > /home/user/.hal/default/service-settings/gate.yml
+kubernetes:
+  volumes:
+  - id: internal-trust-store
+    mountPath: /etc/ssl/certs/java
+    type: secret
+  nodeSelector:
+    $NODE_SELECTOR_1
+    $NODE_SELECTOR_2
+EOF
+
+    	for i in clouddriver deck echo fiat front50 igor orca rosco
+    	do
+      	echo "--$i--"
+      	cat << EOF > /home/user/.hal/default/service-settings/$i.yml
+kubernetes:
+  nodeSelector:
+    $NODE_SELECTOR_1
+    $NODE_SELECTOR_2
+EOF
+    	done
 
 	export ACCOUNT='spinnaker'
 	
@@ -252,29 +275,6 @@ echo
     cp /certs/root-ca.cer /certs/k8s-root-ca.cer
     keytool -import -trustcacerts -alias k8s-root-ca -keystore /certs/cacerts -file /certs/k8s-root-ca.cer -storepass changeit -noprompt
     #kubectl create secret generic internal-trust-store --from-file /certs/cacerts
-
-    mkdir -p /home/user/.hal/default/service-settings
-    cat << EOF > /home/user/.hal/default/service-settings/gate.yml
-kubernetes:
-  volumes:
-  - id: internal-trust-store
-    mountPath: /etc/ssl/certs/java
-    type: secret
-  nodeSelector:
-    $NODE_SELECTOR_1
-    $NODE_SELECTOR_2
-EOF
-
-    for i in clouddriver deck echo fiat front50 igor orca rosco
-    do
-      echo "--$i--"
-      cat << EOF > /home/user/.hal/default/service-settings/$i.yml
-kubernetes:
-  nodeSelector:
-    $NODE_SELECTOR_1
-    $NODE_SELECTOR_2
-EOF
-    done
 
     #hal config security authn x509 enable
 
