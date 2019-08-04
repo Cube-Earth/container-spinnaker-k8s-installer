@@ -141,7 +141,7 @@ then
 	then
 		
 		kubectl apply -f /usr/local/bin/k8s/minio_pvc.yaml
-		helm install --tls --namespace $POD_NAMESPACE --name minio --set 'nodeSelector={"beta.kubernetes.io/os": linux, "beta.kubernetes.io/arch": amd64}' --set accessKey=$MINIO_ACCESS_KEY --set secretKey=$MINIO_SECRET_KEY --set persistence.existingClaim="minio-pvc" stable/minio
+		helm install --tls --namespace $POD_NAMESPACE --name minio --set nodeSelector.beta\\.kubernetes\\.io/os=linux --set nodeSelector.beta\\.kubernetes\\.io/arch=amd64 --set accessKey=$MINIO_ACCESS_KEY --set secretKey=$MINIO_SECRET_KEY --set persistence.existingClaim="minio-pvc" stable/minio
 
 		# helm delete minio --purge --tls
 	fi
