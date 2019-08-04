@@ -2,6 +2,9 @@
 
 PROVIDER=k8s
 
+NODE_SELECTOR_1="beta.kubernetes.io/os: linux"
+NODE_SELECTOR_2="beta.kubernetes.io/arch: amd64"
+
 while getopts "p:" opt; do
     case "${opt}" in
         p)
@@ -99,7 +102,7 @@ then
 	
 	#kubectl delete deployment --namespace=$POD_NAMESPACE tiller-deploy
 #	kubectl apply -f /usr/local/bin/k8s/tiller.yaml
-	helm init --history-max=100 --tiller-tls --tiller-tls-verify --tiller-tls-cert /certs/tiller-default.cer --tiller-tls-key /certs/tiller-default.key --tls-ca-cert /certs/root-ca.cer --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}' --service-account=pipeline
+	helm init --history-max=100 --tiller-tls --tiller-tls-verify --tiller-tls-cert /certs/tiller-default.cer --tiller-tls-key /certs/tiller-default.key --tls-ca-cert /certs/root-ca.cer --node-selectors "beta.kubernetes.io/os"="linux" --node-selectors "beta.kubernetes.io/arch"="amd64" --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}' --service-account=pipeline
 
 	n=72  # 72 * 5sec = 6min
 	while ! helm list --tls > /dev/null 2>&1
@@ -227,8 +230,20 @@ kubernetes:
   - id: internal-trust-store
     mountPath: /etc/ssl/certs/java
     type: secret
+  nodeSelector:
+    $NODE_SELECTOR_1
+    $NODE_SELECTOR_2
 EOF
 
+    for i in "clouddriver deck echo fiat front50 igor orca rosco"
+    do
+      cat << EOF > /home/user/.hal/default/service-settings/$i.yml
+kubernetes:
+  nodeSelector:
+    $NODE_SELECTOR_1
+    $NODE_SELECTOR_2
+EOF
+    done
 
     #hal config security authn x509 enable
 

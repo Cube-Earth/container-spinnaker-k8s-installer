@@ -49,6 +49,9 @@ spec:
         app: spinnaker-k8s-installer
     spec:
       serviceAccountName: pipeline
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+        beta.kubernetes.io/arch: amd64
       containers:
       - name: spinnaker-k8s-installer
         image: cubeearth/spinnaker-k8s-installer:latest
