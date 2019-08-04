@@ -57,15 +57,15 @@ IFS=' '
 ### Installing certificate server     ###
 #########################################
 
+echo
+echo '#########################################'
+echo '### Installing certificate server     ###'
+echo '#########################################'
+echo
+
 n=$(kubectl get pods -l app=pod-cert-server -ojson | jq '.items | length')
 if [[ "$n" -eq 0 ]]
 then
-	echo
-	echo '#########################################'
-	echo '### Installing certificate server     ###'
-	echo '#########################################'
-	echo
-
 	kubectl apply -f <(curl -sL https://github.com/Cube-Earth/container-k8s-cert-server/raw/master/k8s/pod-cert-server.yaml.tpl | awk -v ns=$POD_NAMESPACE '{ gsub(/\{\{ *namespace *\}\}/, ns); print }') 
 
 	n=30
@@ -204,7 +204,7 @@ echo '### Installing spinnaker              ###'
 echo '#########################################'
 echo
 
-	update-halyard
+	#update-halyard
 
 	export ACCOUNT='spinnaker'
 	
@@ -212,7 +212,9 @@ echo
 		k8s)
 			hal config provider aws disable
 			hal config provider azure disable
-			hal config provider kubernetes enable		
+			hal config provider kubernetes enable
+
+			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k		
 		
                         [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 && touch /tmp/k8s_acc_added.state
 			#    --context $(kubectl config current-context)
@@ -263,8 +265,7 @@ kubernetes:
     $NODE_SELECTOR_2
 EOF
 
-    IFS=' '
-    for i in "clouddriver deck echo fiat front50 igor orca rosco"
+    for i in clouddriver deck echo fiat front50 igor orca rosco
     do
       echo "--$i--"
       cat << EOF > /home/user/.hal/default/service-settings/$i.yml
@@ -278,6 +279,7 @@ EOF
     #hal config security authn x509 enable
 
     cd /tmp
+    [[ -f /certs/gate.jks ]] && rm /certs/gate.jks
     openssl pkcs12 -export -clcerts -in /certs/spinnaker.cer -inkey /certs/spinnaker.key -out /certs/spinnaker.p12 -name spinnaker -password pass:secret
     openssl pkcs12 -export -clcerts -in /certs/gate.cer -inkey /certs/gate.key -out /certs/gate.p12 -name gate -password pass:secret
     keytool -importkeystore \
@@ -297,8 +299,6 @@ EOF
     hal config security ui ssl enable
 
     cat /home/user/.hal/config | awk -v f=/usr/local/bin/awk/customSizing.yml -f /usr/local/bin/awk/add_customSizing.awk | tee /home/user/.hal/config > /dev/null
-
-	createKubeConfig.sh -a pipeline -k
 	
 	hal config security ui edit --override-base-url "https://$INGRESS_DNS:9000"
 	hal config security api edit --override-base-url "https://$INGRESS_DNS:8084"
