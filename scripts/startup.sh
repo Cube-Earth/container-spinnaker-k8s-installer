@@ -90,10 +90,13 @@ echo '### Installing tiller                 ###'
 echo '#########################################'
 echo
 
-mkdir -p ~/.helm
-ln -s /certs/root_ca.cer ~/.helm/ca.pem
-ln -s /certs/tiller-default.cer ~/.helm/cert.pem
-ln -s /certs/tiller-default.key ~/.helm/key.pem
+if [[ ! -f ~/.helm/key.pem ]]
+then
+	mkdir -p ~/.helm
+	ln -s /certs/root_ca.cer ~/.helm/ca.pem
+	ln -s /certs/tiller-default.cer ~/.helm/cert.pem
+	ln -s /certs/tiller-default.key ~/.helm/key.pem
+fi
 
 export TILLER_NAMESPACE=$POD_NAMESPACE
 n=$(kubectl get pod -l name=tiller -ojson | jq '.items | length')
@@ -186,7 +189,7 @@ echo
 			hal config provider azure disable
 			hal config provider kubernetes enable		
 		
-			hal config provider kubernetes account add "$ACCOUNT" --provider-version v2
+                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 && touch /tmp/k8s_acc_added.state
 			#    --context $(kubectl config current-context)
     
 			mkdir -p /home/user/.hal/default/profiles
