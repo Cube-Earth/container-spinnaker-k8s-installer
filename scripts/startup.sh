@@ -1,5 +1,24 @@
 #!/bin/lsh
 
+# Dockerfile:
+# - chmod 777 /certs
+
+
+#   - id: urandom
+#    mountPath: /dev/random
+#    type: hostpath
+
+
+n=$(id -un)
+if [[ "$n" = "root" ]] 
+then
+	echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers 
+#####	chmod 777 /certs
+	echo "switching to non-root user ..."
+	su -s /bin/bash user -c "$0 $*"
+	exit 0
+fi
+
 umask 000
 
 PROVIDER=k8s
@@ -25,10 +44,10 @@ shift $((OPTIND-1))
 #n=$(kubectl get pods -l app.kubernetes.io/part-of=spinnaker -ojson | jq '.items | length')
 #[[ "$n" -gt 0 ]] && echo "WARNING: Spinnaker already installed. skipping installation ..." && exit 0
 
-$DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/shell/k8s/pod/createKubeConfig.sh > /usr/local/bin/createKubeConfig.sh
-chmod +x /usr/local/bin/createKubeConfig.sh
-mkdir -p /usr/local/bin/awk
-$DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/awk/replace_env.awk > /usr/local/bin/awk/replace_env.awk
+mkdir -p ~/bin/awk
+$DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/shell/k8s/pod/createKubeConfig.sh > ~/bin/createKubeConfig.sh
+chmod +x ~/bin/createKubeConfig.sh
+$DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/awk/replace_env.awk > ~/bin/awk/replace_env.awk
 
 
 #########################################
@@ -82,7 +101,7 @@ then
 
 fi
 
-update-certs.sh
+sudo update-certs.sh
 [[ ! -f /certs/tiller-default.cer ]] && echo "ERROR: pod cert server not started successfully!" && exit 1
 
 
@@ -91,7 +110,7 @@ update-certs.sh
 #########################################
 
 n=$(kubectl get pods -l run=haproxy-ingress -A -ojson | jq '.items | length')
-if [[ "$n" -eq 255 ]]
+if [[ "$n" -eq 0 ]]
 then
 	echo
 	echo '#########################################'
@@ -100,9 +119,9 @@ then
 	echo
 
 	$DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/awk/ingress_add_port.awk > /tmp/ingress_add_port.awk
-	$DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/k8s/haproxy.yaml | \
-		awk -v protocol=spin-deck-http -v port=9000 -v target="$POD_NAMESPACE/spin-deck:9000" -f /tmp/ingress_add_port.awk | \
-		awk -v protocol=spin-gate-http -v port=8084 -v target="$POD_NAMESPACE/spin-gate:8084" -f /tmp/ingress_add_port.awk > /tmp/haproxy.yaml
+    $DOWNLOAD https://raw.githubusercontent.com/Cube-Earth/Scripts/master/k8s/haproxy.yaml | \
+        awk -v protocol=spin-deck-http -v port=9000 -v target="$POD_NAMESPACE/spin-deck:9000" -f /tmp/ingress_add_port.awk | \
+        awk -v protocol=spin-gate-http -v port=8084 -v target="$POD_NAMESPACE/spin-gate:8084" -f /tmp/ingress_add_port.awk > /tmp/haproxy.yaml
 
 	kubectl apply -f /tmp/haproxy.yaml
 fi
@@ -191,6 +210,17 @@ then
 	kubectl apply -f https://raw.githubusercontent.com/Cube-Earth/container-ldap-server/master/k8s/ldap-server.yaml
 fi
 
+#a=$(kubectl get pod -l component=kube-apiserver -n kube-system -o json)
+#n=$(jq -r '.items[].metadata.name' <<< $a)
+#b=$(jq -r '.items[].spec.containers[].command[]' <<< $a)
+#read -r lineNo line < <( awk '/^--runtime-config=/ { print NR " " $0 }' <<< $b )
+#if [[ -z "${lineNo:-}" ]]
+#then
+#	kubectl patch pod "$n" -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/containers/0/command/-", "--runtime-config=settings.k8s.io/v1alpha1=true" }]'
+#else
+#fi
+
+
 #########################################
 ### Installing spinnaker              ###
 #########################################
@@ -206,12 +236,15 @@ then
 	echo '#########################################'
 	echo
 
-	update-halyard
+	sudo update-halyard
 
     	mkdir -p /home/user/.hal/default/service-settings
     	cat << EOF > /home/user/.hal/default/service-settings/gate.yml
 kubernetes:
+  podLabels:
+    randomDevice: urandom
   volumes:
+    hostpath: /dev/urandom
   - id: internal-trust-store
     mountPath: /etc/ssl/certs/java
     type: secret
@@ -220,10 +253,15 @@ kubernetes:
     $NODE_SELECTOR_2
 EOF
 
+
+
+
     	for i in clouddriver deck echo fiat front50 igor orca rosco redis
     	do
       		cat << EOF > /home/user/.hal/default/service-settings/$i.yml
 kubernetes:
+  podLabels:
+    randomDevice: urandom
   nodeSelector:
     $NODE_SELECTOR_1
     $NODE_SELECTOR_2
@@ -238,12 +276,12 @@ EOF
 			hal config provider azure disable
 			hal config provider kubernetes enable
 
-			[[ ! -f ~/.kube/config ]] && createKubeConfig.sh -a pipeline -k	&& chmod 755 ~/.kube/config	
+			[[ ! -f ~/.kube/config ]] && ~/bin/createKubeConfig.sh -a pipeline -k && chmod 755 ~/.kube/config	
 		
 			
 			n=$(hal -q config provider kubernetes account list | grep "$ACCOUNT" | wc -l || rc=$?)
 			[[ "$n" -gt 0 ]] && hal config provider kubernetes account delete "$ACCOUNT"
-                        [[ ! -f /tmp/k8s_acc_added.state ]] && hal config provider kubernetes account add "$ACCOUNT" --provider-version v2 && touch /tmp/k8s_acc_added.state
+            hal config provider kubernetes account add "$ACCOUNT" --provider-version v2
 			#--context $(kubectl config current-context)
     
 			mkdir -p /home/user/.hal/default/profiles
@@ -267,10 +305,6 @@ EOF
 	hal config features edit --artifacts true
 	hal config deploy edit --type distributed --account-name "$ACCOUNT"
 
-    v=`hal -q version latest`
-    hal config version edit --version "$v"
-    hal config deploy edit --location $POD_NAMESPACE
-
     curl -Ls https://pod-cert-server/pwd/ldap-root | hal config security authn ldap edit --manager-dn "cn=Manager,dc=k8s" --manager-password --user-search-base "ou=users,dc=k8s" --user-search-filter "(&(uid={0})(memberof=cn=admin,ou=groups,dc=k8s))" --url=ldaps://ldap:636
     # ldapsearch -H ldaps://ldap:636 -D "cn=Manager,dc=k8s" -b ou=users,dc=k8s -w <pwd> "(&(uid=admin)(memberof=cn=admin,ou=groups,dc=k8s))"
     hal config security authn ldap enable
@@ -278,7 +312,8 @@ EOF
     cp /etc/ssl/certs/java/cacerts /certs/cacerts
     cp /certs/root-ca.cer /certs/k8s-root-ca.cer
     keytool -import -trustcacerts -alias k8s-root-ca -keystore /certs/cacerts -file /certs/k8s-root-ca.cer -storepass changeit -noprompt
-    #kubectl create secret generic internal-trust-store --from-file /certs/cacerts
+    kubectl get secret internal-trust-store > /dev/null 2>&1 && rc=0 || rc=$?
+	[[ "$rc" -ne 0 ]] && kubectl create secret generic internal-trust-store --from-file /certs/cacerts
 
     #hal config security authn x509 enable
 
@@ -306,6 +341,10 @@ EOF
 	
 	hal config security ui edit --override-base-url "https://$INGRESS_DNS:9000"
 	hal config security api edit --override-base-url "https://$INGRESS_DNS:8084"
+
+    v=`hal -q version latest`
+    hal config version edit --version "$v"
+    hal config deploy edit --location $POD_NAMESPACE
 
     hal deploy apply
 fi
