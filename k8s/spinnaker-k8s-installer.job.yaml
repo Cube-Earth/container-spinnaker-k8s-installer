@@ -64,5 +64,6 @@ spec:
         - name: INGRESS_DNS
           value: k8s-demo
       restartPolicy: Never
+  parallelism: 1
   completions: 1
   backoffLimit: 1

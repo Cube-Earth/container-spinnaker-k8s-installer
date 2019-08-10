@@ -101,9 +101,9 @@ then
 
 fi
 
-sudo update-certs.sh
+sudo update-certs-local.sh
 [[ ! -f /certs/tiller-default.cer ]] && echo "ERROR: pod cert server not started successfully!" && exit 1
-
+sudo chmod 777 /certs
 
 #########################################
 ### Installing haproxy                ###
