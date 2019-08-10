@@ -244,7 +244,6 @@ kubernetes:
   podLabels:
     randomDevice: urandom
   volumes:
-    hostpath: /dev/urandom
   - id: internal-trust-store
     mountPath: /etc/ssl/certs/java
     type: secret
