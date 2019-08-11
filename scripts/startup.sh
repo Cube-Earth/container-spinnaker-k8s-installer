@@ -247,13 +247,14 @@ kubernetes:
   - id: internal-trust-store
     mountPath: /etc/ssl/certs/java
     type: secret
+#  - id: alpine-3d9-wget
+#    mountPath: /opt/wget
+#    type: configMap
+  useExecHealthCheck: false
   nodeSelector:
     $NODE_SELECTOR_1
     $NODE_SELECTOR_2
 EOF
-
-
-
 
     	for i in clouddriver deck echo fiat front50 igor orca rosco redis
     	do
